@@ -35,14 +35,14 @@ using namespace std;            // std namespace: so you can do things like 'cou
 ClassImp(AliAnalysisTaskMyTask) // classimp: necessary for root
 
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask() : AliAnalysisTaskSE(), 
-    fAOD(0), fOutputList(0), fHistPt(0)
+    fAOD(0), fOutputList(0), fHistPt(0), fHistPhi(0), fHistPhiCut(0)
 {
     // default constructor, don't allocate memory here!
     // this is used by root for IO purposes, it needs to remain empty
 }
 //_____________________________________________________________________________
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask(const char* name) : AliAnalysisTaskSE(name),
-    fAOD(0), fOutputList(0), fHistPt(0)
+    fAOD(0), fOutputList(0), fHistPt(0), fHistPhi(0), fHistPhiCut(0)
 {
     // constructor
     DefineInput(0, TChain::Class());    // define the input of the analysis: in this case we take a 'chain' of events
@@ -79,9 +79,12 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
                                         // if requested (dont worry about this now)
 
     // example of a histogram
-    fHistPt = new TH1F("fHistPt", "fHistPt", 100, 0, 10);       // create your histogra
+    fHistPt = new TH1F("fHistPt", "fHistPt", 100, 0, 10);       // create your histogram
+    fHistPhi = new TH1F("fHistPhi", "fHistPhi",100,0,7);
+    fHistPhiCut = new TH1F("fHistPhiCut", "fHistPhiCut",100,0,7);
     fOutputList->Add(fHistPt);          // don't forget to add it to the list! the list will be written to file, so if you want
-                                        // your histogram in the output file, add it to the list!
+    fOutputList->Add(fHistPhi);          // your histogram in the output file, add it to the list!
+    fOutputList->Add(fHistPhiCut);
     
     PostData(1, fOutputList);           // postdata will notify the analysis manager of changes / updates to the 
                                         // fOutputList object. the manager will in the end take care of writing your output to file
@@ -96,19 +99,32 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
     // have access to the current event. 
     // once you return from the UserExec function, the manager will retrieve the next event from the chain
     fAOD = dynamic_cast<AliAODEvent*>(InputEvent());    // get an event (called fAOD) from the input file
-                                                        // there's another event format (ESD) which works in a similar wya
+                                                        // there's another event format (ESD) which works in a similar way
                                                         // but is more cpu/memory unfriendly. for now, we'll stick with aod's
     if(!fAOD) return;                                   // if the pointer to the event is empty (getting it failed) skip this event
         // example part: i'll show how to loop over the tracks in an event 
         // and extract some information from them which we'll store in a histogram
+    AliVVertex *vtx = fAOD->GetPrimaryVertex();
+    double zvtx = vtx->GetZ();
+    
     Int_t iTracks(fAOD->GetNumberOfTracks());           // see how many tracks there are in the event
-    for(Int_t i(0); i < iTracks; i++) {                 // loop ove rall these tracks
+    for(Int_t i(0); i < iTracks; i++) {                 // loop over all these tracks
         AliAODTrack* track = static_cast<AliAODTrack*>(fAOD->GetTrack(i));         // get a track (type AliAODTrack) from the event
-        if(!track || !track->TestFilterBit(1)) continue;                            // if we failed, skip this track
-        fHistPt->Fill(track->Pt());                     // plot the pt value of the track in a histogram
+        if(!track || !track->TestFilterBit(768)) continue;                            // if we failed, skip this track
+        Char_t ch = (Char_t)track->Charge();
+        if (ch==-1 || ch==1){
+            double eta  = track -> Eta();
+            double phi  = track -> Phi();
+            double pt   = track -> Pt();
+            fHistPt->Fill(pt);                     // plot the pt value of the track in a histogram
+            fHistPhi->Fill(phi);
+            if(zvtx>6.0 && zvtx<8.0 && eta>0.6 && eta<0.8){fHistPhiCut->Fill(phi);}
+        }
+        
+        
     }                                                   // continue until all the tracks are processed
     PostData(1, fOutputList);                           // stream the results the analysis of this event to
-                                                        // the output manager which will take care of writing
+                                                         // the output manager which will take care of writing
                                                         // it to a file
 }
 //_____________________________________________________________________________

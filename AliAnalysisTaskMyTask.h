@@ -22,6 +22,9 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
         AliAODEvent*            fAOD;           //! input event
         TList*                  fOutputList;    //! output list
         TH1F*                   fHistPt;        //! dummy histogram
+        TH1F*                   fHistPhi;        //! dummy histogram
+        TH1F*                   fHistPhiCut;        //! dummy histogram
+        
 
         AliAnalysisTaskMyTask(const AliAnalysisTaskMyTask&); // not implemented
         AliAnalysisTaskMyTask& operator=(const AliAnalysisTaskMyTask&); // not implemented
