@@ -23,7 +23,10 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
         TList*                  fOutputList;    //! output list
         TH1F*                   fHistPt;        //! dummy histogram
         TH1F*                   fHistPhi;        //! dummy histogram
-        TH1F*                   fHistPhiCut;        //! dummy histogram
+        TH1F*                   fHistPhiCut810;        //! dummy histogram
+        TH1F*                   fHistPhiCut610;        //! dummy histogram
+        TH1F*                   fHistPhiCutLess8;        //! dummy histogram
+        TH3F*                   fHistZetaPhi;        //! dummy histogram
         
 
         AliAnalysisTaskMyTask(const AliAnalysisTaskMyTask&); // not implemented

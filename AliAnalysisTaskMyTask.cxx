@@ -21,6 +21,7 @@
 
 #include "TChain.h"
 #include "TH1F.h"
+#include "TH3F.h"
 #include "TList.h"
 #include "AliAnalysisTask.h"
 #include "AliAnalysisManager.h"
@@ -35,14 +36,14 @@ using namespace std;            // std namespace: so you can do things like 'cou
 ClassImp(AliAnalysisTaskMyTask) // classimp: necessary for root
 
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask() : AliAnalysisTaskSE(), 
-    fAOD(0), fOutputList(0), fHistPt(0), fHistPhi(0), fHistPhiCut(0)
+    fAOD(0), fOutputList(0), fHistPt(0), fHistPhi(0), fHistPhiCut810(0), fHistPhiCut610(0), fHistPhiCutLess8(0), fHistZetaPhi(0)
 {
     // default constructor, don't allocate memory here!
     // this is used by root for IO purposes, it needs to remain empty
 }
 //_____________________________________________________________________________
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask(const char* name) : AliAnalysisTaskSE(name),
-    fAOD(0), fOutputList(0), fHistPt(0), fHistPhi(0), fHistPhiCut(0)
+    fAOD(0), fOutputList(0), fHistPt(0), fHistPhi(0), fHistPhiCut810(0), fHistPhiCut610(0), fHistPhiCutLess8(0),fHistZetaPhi(0)
 {
     // constructor
     DefineInput(0, TChain::Class());    // define the input of the analysis: in this case we take a 'chain' of events
@@ -80,11 +81,18 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
 
     // example of a histogram
     fHistPt = new TH1F("fHistPt", "fHistPt", 100, 0, 10);       // create your histogram
-    fHistPhi = new TH1F("fHistPhi", "fHistPhi",100,0,7);
-    fHistPhiCut = new TH1F("fHistPhiCut", "fHistPhiCut",100,0,7);
+    fHistPhi = new TH1F("fHistPhi", "fHistPhi",50,-TMath::Pi(),TMath::Pi());
+    fHistPhiCut810 = new TH1F("fHistPhiCut810", "fHistPhiCut810",50,-TMath::Pi(),TMath::Pi());
+    fHistPhiCut610 = new TH1F("fHistPhiCut610", "fHistPhiCut610",50,-TMath::Pi(),TMath::Pi());
+    fHistPhiCutLess8 = new TH1F("fHistPhiCutLess8", "fHistPhiCutLess8",50,-TMath::Pi(),TMath::Pi());
+    fHistZetaPhi = new TH3F("fHistZetaPhi", "fHistZetaPhi", 50,-TMath::Pi(),TMath::Pi(), 200, -2.0, 2.0,
+                        200, -10.0, 10.0);
     fOutputList->Add(fHistPt);          // don't forget to add it to the list! the list will be written to file, so if you want
     fOutputList->Add(fHistPhi);          // your histogram in the output file, add it to the list!
-    fOutputList->Add(fHistPhiCut);
+    fOutputList->Add(fHistPhiCut810);
+    fOutputList->Add(fHistPhiCut610);
+    fOutputList->Add(fHistPhiCutLess8);
+    fOutputList->Add(fHistZetaPhi);
     
     PostData(1, fOutputList);           // postdata will notify the analysis manager of changes / updates to the 
                                         // fOutputList object. the manager will in the end take care of writing your output to file
@@ -117,8 +125,11 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
             double phi  = track -> Phi();
             double pt   = track -> Pt();
             fHistPt->Fill(pt);                     // plot the pt value of the track in a histogram
-            fHistPhi->Fill(phi);
-            if(zvtx>6.0 && zvtx<8.0 && eta>0.6 && eta<0.8){fHistPhiCut->Fill(phi);}
+            fHistPhi->Fill(phi-TMath::Pi());
+            fHistZetaPhi->Fill(phi-TMath::Pi(),eta,zvtx);
+            if(zvtx>8.0 && zvtx<10.0 && eta>0.6 && eta<0.8){fHistPhiCut810->Fill(phi-TMath::Pi());}
+            if(zvtx>6.0 && zvtx<10.0 && eta>0.6 && eta<0.8){fHistPhiCut610->Fill(phi-TMath::Pi());}
+            if(zvtx<8.0 && eta>0.6 && eta<0.8){fHistPhiCutLess8->Fill(phi-TMath::Pi());}
         }
         
         

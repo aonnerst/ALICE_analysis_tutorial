@@ -62,7 +62,7 @@ void runAnalysis()
         alienHandler->SetAnalysisSource("AliAnalysisTaskMyTask.cxx");
         // select the aliphysics version. all other packages
         // are LOADED AUTOMATICALLY!
-        alienHandler->SetAliPhysicsVersion("vAN-20181028_ROOT6-1");
+        alienHandler->SetAliPhysicsVersion("vAN-20210404_ROOT6-1");
         // set the Alien API version
         alienHandler->SetAPIVersion("V1.1x");
         // select the input data
